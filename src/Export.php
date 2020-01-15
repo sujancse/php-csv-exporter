@@ -82,6 +82,8 @@ class Export
         while ($generator->valid()) {
             $generator->next();
         }
+
+        die();
     }
 
     /**
