@@ -1,7 +1,5 @@
 ## Overview
-A fast and tiny PHP library to export data to csv, excel etc. 
-The library is based of PHP generator. It used only 20MB memory
-to download 5 Million data. Tested on Laravel 6.
+A fast and tiny PHP library to export data to CSV, Excel, etc. The library is based on a PHP generator. It used only 20MB memory to download 5 Million data, whereas without generator it will take up to 500MB of memory. Tested on Laravel 6.
 
 ### Installation
 ```$xslt
