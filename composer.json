@@ -1,5 +1,5 @@
 {
-    "name": "sujan/csv-exporter",
+    "name": "sujan/php-csv-exporter",
     "description": "A PHP library to export data to csv, xlsx etc",
     "type": "library",
     "license": "MIT",
