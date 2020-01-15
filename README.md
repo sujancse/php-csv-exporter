@@ -5,7 +5,7 @@ to download 5 Million data. Tested on Laravel 6.
 
 ### Installation
 ```$xslt
-composer require sujan/exporter
+composer require sujan/csv-exporter
 ```
 
 ## Usage
