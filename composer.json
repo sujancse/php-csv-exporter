@@ -1,0 +1,19 @@
+{
+    "name": "sujan/exporter",
+    "description": "A PHP library to export data to csv, xlsx etc",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Sujan Mahmud",
+            "email": "sujancseruet@gmail.com"
+        }
+    ],
+    "minimum-stability": "dev",
+    "require": {},
+    "autoload": {
+        "psr-4": {
+            "Sujan\\Exporter\\": "src/"
+        }
+    }
+}
