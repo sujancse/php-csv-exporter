@@ -9,6 +9,9 @@ composer require sujan/exporter
 ```
 
 ## Usage
+All you have to do is to pass the **Query Builder**
+
+
 `use Sujan\Exporter\Export
 `
 ```$xslt
@@ -19,7 +22,7 @@ $columns = [
 ];
 
 $exporter = new Export(
-    User::query(),
+    User::query(), // Query Builder
     $columns
 );
 
@@ -37,7 +40,7 @@ $columns = [
 ];
 
 $exporter = new Export(
-    Post::with('user'),
+    Post::with('user'), // Query Builder
     $columns
 );
 
