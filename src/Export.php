@@ -4,8 +4,10 @@
 namespace Sujan\Exporter;
 
 
+use Exception;
 use Generator;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
 
 class Export
 {
@@ -27,7 +29,7 @@ class Export
     /**
      * @var string
      */
-    private $contentType;
+    private $contentType = 'application/csv';
 
     /**
      * @var string
@@ -37,43 +39,39 @@ class Export
     /**
      * @var string
      */
-    private $delimiter;
+    private $delimiter = ";";
 
     /**
      * Export constructor.
-     * @param Builder|null $model
+     * @param object | array $model
      * @param array $columns
-     * @param string $contentType
      * @param string $filename
-     * @param string $delimiter
      */
     public function __construct(
-        Builder $model = null,
+        $model,
         array $columns = [],
-        string $contentType = 'application/csv',
-        string $filename = 'export.csv',
-        string $delimiter = ";"
+        string $filename = 'export.csv'
     )
     {
         $this->setModel($model);
         $this->setColumns($columns);
         $this->setHeading($columns);
         $this->setFilename($filename);
-        $this->setContentType($contentType);
-        $this->setDelimiter($delimiter);
+        $this->setContentType();
     }
 
     /**
-     * @param $contentType
+     * Set content type
      */
-    public function setContentType($contentType)
+    public function setContentType()
     {
-        header("Content-Type: {$contentType}");
+        header("Content-Type: {$this->contentType}");
         header("Content-Disposition: attachment; filename={$this->filename};");
     }
 
     /**
      * return generated CSV
+     * @throws Exception
      */
     public function export()
     {
@@ -88,6 +86,7 @@ class Export
 
     /**
      * @return Generator
+     * @throws Exception
      */
     public function write()
     {
@@ -96,10 +95,40 @@ class Export
 
         fputcsv($file, $this->heading, $this->delimiter);
 
-        foreach ($this->model->get() as $data) {
-            $line = $this->getLine($data);
+        if (is_array($this->model)) {
+            foreach ($this->model as $data) {
+                $line = $this->getLine($data);
 
-            yield fputcsv($file, $line, $this->delimiter);
+                yield fputcsv($file, $line, $this->delimiter);
+            }
+        } else {
+            $className = !is_string($this->model) ? class_basename($this->model) : null;
+
+            switch ($className) {
+                case 'Collection':
+                    foreach ($this->model as $data) {
+                        $line = $this->getLine($data);
+
+                        yield fputcsv($file, $line, $this->delimiter);
+                    }
+                    break;
+                case 'Builder':
+                    foreach ($this->model->get() as $data) {
+                        $line = $this->getLine($data);
+
+                        yield fputcsv($file, $line, $this->delimiter);
+                    }
+                    break;
+                case 'PDOStatement':
+                    foreach ($this->model->fetchAll() as $data) {
+                        $line = $this->getLine($data);
+
+                        yield fputcsv($file, $line, $this->delimiter);
+                    }
+                    break;
+                default:
+                    throw new Exception('Type unknown');
+            }
         }
 
         fclose($file);
@@ -118,7 +147,8 @@ class Export
                 $value = $this->getNestedData($data, $key, $k);
                 array_push($line, $value);
             } else {
-                array_push($line, $data->{$key});
+                $value = is_array($data) ? $data[$key] : $data->{$key};
+                array_push($line, $value);
             }
         }
 
@@ -134,7 +164,11 @@ class Export
     public function getNestedData($data, $keys, $k)
     {
         foreach ($keys as $kk => $key) {
-            $data = isset($data->{$k}->{$key}) ? $data->{$k}->{$key} : '';
+            if (is_array($data)) {
+                $data = isset($data[$k][$key]) ? $data[$k][$key] : '';
+            } else {
+                $data = isset($data->{$k}->{$key}) ? $data->{$k}->{$key} : '';
+            }
 
             if (is_array($data)) {
                 $this->getNestedData($data, $key, $kk);
@@ -153,9 +187,9 @@ class Export
     }
 
     /**
-     * @param Builder $model
+     * @param object | array $model
      */
-    protected function setModel(Builder $model): void
+    protected function setModel($model): void
     {
         $this->model = $model;
     }
