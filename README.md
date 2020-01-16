@@ -19,9 +19,9 @@ $columns = [
     'email'
 ];
 
-$users = User::query(); // Query builder
+$queryBuilder = User::query(); // Query builder
 
-Exporter::init($users, $columns, 'users.csv');
+Exporter::init($queryBuilder, $columns, 'users.csv');
 Exporter::export();
 ```
 
@@ -37,12 +37,10 @@ $columns = [
     ]
 ];
 
-$exporter = new Export(
-    Post::with('user'), // Query Builder
-    $columns
-);
+$queryBuilder = Post::with('user'); // Query builder
 
-$exporter->export();
+Exporter::init($queryBuilder, $columns, 'users.csv');
+Exporter::export();
 ```
 
 Where `user` is the relation name, which is same as is in the `$columns` variable.
