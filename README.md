@@ -1,3 +1,6 @@
+![Packagist Version](https://img.shields.io/packagist/v/sujan/php-csv-exporter)
+![Packagist](https://img.shields.io/packagist/dt/sujan/php-csv-exporter?color=green)
+
 ## Overview
 A fast and tiny PHP library to export data to CSV, Excel, etc. The library is based on a PHP generator. It used only 20MB memory to download 5 Million data, whereas without generator it will take up to 500MB of memory. Tested on Laravel 6.
 
