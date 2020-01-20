@@ -33,7 +33,7 @@ class Exporter
     }
 
     /**
-     * @param $model
+     * @param array | object $model
      * @param $columns
      * @param $filename
      * @return ExporterContract

@@ -5,8 +5,10 @@ namespace Sujan\Exporter\Contracts;
 
 
 
+use Generator;
+
 interface ExporterContract
 {
-    public function set();
-    public function get();
+    public function set(): Generator;
+    public function get(): void;
 }

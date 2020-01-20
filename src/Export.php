@@ -4,8 +4,6 @@
 namespace Sujan\Exporter;
 
 
-use Exception;
-use Sujan\Exporter\Contracts\ExporterContract;
 
 class Export
 {
@@ -33,10 +31,13 @@ class Export
      * Array of content types
      */
     private $contentTypes = [
-        '.csv' => 'application/csv',
-        '.xlsx' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        'csv' => 'application/csv',
+        'xlsx' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
     ];
 
+    /*
+     * Content type
+     */
     private $contentType;
 
     /**
@@ -49,6 +50,11 @@ class Export
      */
     protected $delimiter = ";";
 
+    /**
+     * @param array | object $model
+     * @param array $columns
+     * @param string $filename
+     */
     protected function setConfiguration($model, array $columns, string $filename)
     {
         $this->setModel($model);
@@ -56,7 +62,6 @@ class Export
         $this->setHeading($columns);
         $this->setFilename($filename);
         $this->setContentType();
-        $this->openOutputStream();
     }
 
     /**
@@ -102,18 +107,27 @@ class Export
 
         if (!$parts[0]) {
             $this->filename = $this->filename . '.csv';
-            $this->contentType = $this->contentTypes['.csv'];
+            $this->contentType = $this->contentTypes['csv'];
         } else {
-            $this->contentType = $this->contentTypes[strtolower($parts[0])];
+            $this->contentType = $this->contentTypes[trim(strtolower($parts[0]), '.')];
         }
 
         header("Content-Type: {$this->contentType}");
         header("Content-Disposition: attachment; filename={$this->filename};");
     }
 
-    private function openOutputStream()
+    /**
+     * Open the "output" stream
+     */
+    protected function openOutputStream()
     {
-        // open the "output" stream
         $this->file = fopen('php://output', 'w');
+    }
+
+    /**
+     * Close output stream
+     */
+    protected function closeOutputStream() {
+        fclose($this->file);
     }
 }
