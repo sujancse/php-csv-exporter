@@ -14,7 +14,7 @@ composer require sujan/php-csv-exporter
 All you have to do is to pass the **Query Builder**
 
 
-`use Sujan\Exporter\Export
+`use Sujan\Exporter\Exporter;
 `
 ```$xslt
 $columns = [
@@ -22,10 +22,30 @@ $columns = [
     'name',
     'email'
 ];
-
+```
+###### From Query Builder (RECOMMENDED)
+```
 $queryBuilder = User::query(); // Query builder
+// $queryBuilder = User::where('email', 'example@email.com'); // Query builder
 
 Exporter::init($queryBuilder, $columns, 'users.csv');
+// Exporter::init($queryBuilder, $columns, 'users.xlsx'); // For ExcelSheet export
+Exporter::export();
+```
+
+###### From Collection
+```
+$usersCollection = User::all(); // Collection
+
+Exporter::init($usersCollection, $columns, 'users.csv');
+Exporter::export();
+```
+
+###### From Array
+```
+$usersArray = User::latest()->get()->toArray(); // Array
+
+Exporter::init($usersArray, $columns, 'users.csv');
 Exporter::export();
 ```
 
@@ -85,6 +105,12 @@ And then pass the `$stmt` to `Exporter`
         echo "Error: " . $e->getMessage();
     }
     $conn = null;
+```
+
+## XLSX export
+Just use the file extension as `.xlsx`
+```
+Exporter::init($queryBuilder, $columns, 'users.xlsx');
 ```
 
 ## You are always welcome to contribute
