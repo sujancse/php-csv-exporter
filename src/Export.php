@@ -5,185 +5,58 @@ namespace Sujan\Exporter;
 
 
 use Exception;
-use Generator;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Collection;
+use Sujan\Exporter\Contracts\ExporterContract;
 
 class Export
 {
     /**
-     * @var Builder|null
+     * @var array|object
      */
-    private $model;
+    protected $model;
 
     /**
+     * @var array
+     */
+    protected $columns;
+
+    /*
      * @var array
      */
     private $heading = [];
 
     /**
-     * @var array
+     * @var string
      */
-    private $columns;
+    protected $filename;
+
+    /*
+     * Array of content types
+     */
+    private $contentTypes = [
+        '.csv' => 'application/csv',
+        '.xlsx' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    ];
+
+    private $contentType;
+
+    /**
+     * @var false|resource
+     */
+    protected $file;
 
     /**
      * @var string
      */
-    private $contentType = 'application/csv';
+    protected $delimiter = ";";
 
-    /**
-     * @var string
-     */
-    private $filename;
-
-    /**
-     * @var string
-     */
-    private $delimiter = ";";
-
-    /**
-     * Export constructor.
-     * @param object | array $model
-     * @param array $columns
-     * @param string $filename
-     */
-    public function __construct(
-        $model,
-        array $columns = [],
-        string $filename = 'export.csv'
-    )
+    protected function setConfiguration($model, array $columns, string $filename)
     {
         $this->setModel($model);
         $this->setColumns($columns);
         $this->setHeading($columns);
         $this->setFilename($filename);
         $this->setContentType();
-    }
-
-    /**
-     * Set content type
-     */
-    public function setContentType()
-    {
-        header("Content-Type: {$this->contentType}");
-        header("Content-Disposition: attachment; filename={$this->filename};");
-    }
-
-    /**
-     * return generated CSV
-     * @throws Exception
-     */
-    public function export()
-    {
-        $generator = $this->write();
-
-        while ($generator->valid()) {
-            $generator->next();
-        }
-
-        die();
-    }
-
-    /**
-     * @return Generator
-     * @throws Exception
-     */
-    public function write()
-    {
-        // open the "output" stream
-        $file = fopen('php://output', 'w');
-
-        fputcsv($file, $this->heading, $this->delimiter);
-
-        if (is_array($this->model)) {
-            foreach ($this->model as $data) {
-                $line = $this->getLine($data);
-
-                yield fputcsv($file, $line, $this->delimiter);
-            }
-        } else {
-            $className = !is_string($this->model) ? class_basename($this->model) : null;
-
-            switch ($className) {
-                case 'Collection':
-                    foreach ($this->model as $data) {
-                        $line = $this->getLine($data);
-
-                        yield fputcsv($file, $line, $this->delimiter);
-                    }
-                    break;
-                case 'Builder':
-                    foreach ($this->model->get() as $data) {
-                        $line = $this->getLine($data);
-
-                        yield fputcsv($file, $line, $this->delimiter);
-                    }
-                    break;
-                case 'PDOStatement':
-                    foreach ($this->model->fetchAll() as $data) {
-                        $line = $this->getLine($data);
-
-                        yield fputcsv($file, $line, $this->delimiter);
-                    }
-                    break;
-                default:
-                    throw new Exception('Type unknown');
-            }
-        }
-
-        fclose($file);
-    }
-
-    /**
-     * @param $data
-     * @return array
-     */
-    public function getLine($data)
-    {
-        $line = [];
-
-        foreach ($this->columns as $k => $key) {
-            if (is_array($key)) {
-                $value = $this->getNestedData($data, $key, $k);
-                array_push($line, $value);
-            } else {
-                $value = is_array($data) ? $data[$key] : $data->{$key};
-                array_push($line, $value);
-            }
-        }
-
-        return $line;
-    }
-
-    /**
-     * @param $data
-     * @param $keys
-     * @param $k
-     * @return string
-     */
-    public function getNestedData($data, $keys, $k)
-    {
-        foreach ($keys as $kk => $key) {
-            if (is_array($data)) {
-                $data = isset($data[$k][$key]) ? $data[$k][$key] : '';
-            } else {
-                $data = isset($data->{$k}->{$key}) ? $data->{$k}->{$key} : '';
-            }
-
-            if (is_array($data)) {
-                $this->getNestedData($data, $key, $kk);
-            }
-        }
-
-        return $data;
-    }
-
-    /**
-     * @param string $delimiter
-     */
-    protected function setDelimiter(string $delimiter): void
-    {
-        $this->delimiter = $delimiter;
+        $this->openOutputStream();
     }
 
     /**
@@ -195,11 +68,11 @@ class Export
     }
 
     /**
-     * @param string $filename
+     * @param array $columns
      */
-    protected function setFilename(string $filename): void
+    public function setColumns(array $columns): void
     {
-        $this->filename = $filename;
+        $this->columns = $columns;
     }
 
     /**
@@ -213,10 +86,34 @@ class Export
     }
 
     /**
-     * @param array $columns
+     * @param string $filename
      */
-    public function setColumns(array $columns): void
+    protected function setFilename(string $filename): void
     {
-        $this->columns = $columns;
+        $this->filename = $filename;
+    }
+
+    /**
+     * Set content type
+     */
+    public function setContentType()
+    {
+        preg_match('/(?:.csv|.xlsx)/i', $this->filename, $parts);
+
+        if (!$parts[0]) {
+            $this->filename = $this->filename . '.csv';
+            $this->contentType = $this->contentTypes['.csv'];
+        } else {
+            $this->contentType = $this->contentTypes[strtolower($parts[0])];
+        }
+
+        header("Content-Type: {$this->contentType}");
+        header("Content-Disposition: attachment; filename={$this->filename};");
+    }
+
+    private function openOutputStream()
+    {
+        // open the "output" stream
+        $this->file = fopen('php://output', 'w');
     }
 }
