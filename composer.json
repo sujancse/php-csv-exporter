@@ -1,6 +1,6 @@
 {
     "name": "sujan/php-csv-exporter",
-    "description": "A PHP library to export data to csv, xlsx etc",
+    "description": "A PHP library to export data to CSV",
     "type": "library",
     "license": "MIT",
     "authors": [
