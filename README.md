@@ -3,7 +3,12 @@
 ![GitHub](https://img.shields.io/github/license/sujancse/php-csv-exporter?color=yellow)
 
 ## Overview
-A fast and tiny PHP library to export data to CSV and ExcelSheet. The library is based on a PHP generator.
+A fast and tiny PHP library to export data to CSV. The library is based on a PHP generator.
+
+## Why Use
+It took me 5 seconds to export 5M data so you can call it fast enough. And because of the use of 
+[Generator](https://www.php.net/manual/en/language.generators.overview.php) it uses less memory 
+and never get caught by memory exception.
 
 ### Installation
 ```$xslt
