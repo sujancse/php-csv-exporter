@@ -5,47 +5,44 @@ namespace Sujan\Exporter;
 
 
 use Exception;
+use Illuminate\Database\Eloquent\Builder;
+use PDOStatement;
 use Sujan\Exporter\Contracts\ExporterContract;
 
 class Exporter
 {
-    protected static $exporter;
+    protected $exporter;
 
     /**
      * @param $model
      * @param array $columns
      * @param string $filename
+     * @return Exporter
      * @throws Exception
      */
-    public static function init($model, array $columns, string $filename): void
+    public function build($model, array $columns, string $filename)
     {
         if (gettype($model) == 'string') throw new Exception('Type string for model is not allowed.');
 
-        self::setExporter($model, $columns, $filename);
+        $this->setExporter($model, $columns, $filename);
+
+        return $this;
     }
 
     /**
-     * Export the data and die
-     */
-    public static function export(): void
-    {
-        self::$exporter->get();
-    }
-
-    /**
-     * @param array | object $model
+     * @param array | Builder | PDOStatement $model
      * @param $columns
      * @param $filename
-     * @return ExporterContract
+     * @return Exporter
      * @throws Exception
      */
-    private static function setExporter($model, $columns, $filename): ExporterContract
+    private function setExporter($model, $columns, $filename)
     {
         if (is_array($model)) {
-            self::$exporter = new ExportFromArray($model, $columns, $filename);
-            self::$exporter->set();
+            $this->exporter = new ExportFromArray($model, $columns, $filename);
+            $this->exporter->set();
 
-            return self::$exporter;
+            return $this;
         }
 
         /** @var object $model */
@@ -53,20 +50,28 @@ class Exporter
 
         switch ($className) {
             case 'Collection':
-                self::$exporter = new ExportFromArray($model, $columns, $filename);
+                $this->exporter = new ExportFromArray($model, $columns, $filename);
                 break;
             case 'Builder':
-                self::$exporter = new ExportFromQueryBuilder($model, $columns, $filename);
+                $this->exporter = new ExportFromQueryBuilder($model, $columns, $filename);
                 break;
             case 'PDOStatement':
-                self::$exporter = new ExportFromPDOStatement($model, $columns, $filename);
+                $this->exporter = new ExportFromPDOStatement($model, $columns, $filename);
                 break;
             default:
                 throw new Exception('Type unknown');
         }
 
-        self::$exporter->set();
+        $this->exporter->set();
 
-        return self::$exporter;
+        return $this;
+    }
+
+    /**
+     * Export the data and die
+     */
+    public function export(): void
+    {
+        $this->exporter->get();
     }
 }

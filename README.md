@@ -10,48 +10,83 @@ A fast and tiny PHP library to export data to CSV and ExcelSheet. The library is
 composer require sujan/php-csv-exporter
 ```
 
-## Usage
-All you have to do is to pass the **Query Builder**
-
-
-`use Sujan\Exporter\Exporter;
-`
+## Basic Usage
 ```$xslt
-$columns = [
-    'id',
-    'name',
-    'email'
-];
-```
-###### From Query Builder (RECOMMENDED)
-```
-$queryBuilder = User::query(); // Query builder
-// $queryBuilder = User::where('email', 'example@email.com'); // Query builder
+$columns = [ 'id', 'name', 'email' ];
 
-Exporter::init($queryBuilder, $columns, 'users.csv');
-// Exporter::init($queryBuilder, $columns, 'users.xlsx'); // For ExcelSheet export
-Exporter::export();
+$queryBuilder = User::limit(10); // Query Builder
+
+$exporter = new Exporter();
+$exporter->build($queryBuilder, $columns, 'users.csv')
+         ->export();
 ```
 
-###### From Collection
+Build and export, that much simple.
+
+## Documentation
+
+ - [Build CSV](#build-csv)
+ - [Export CSV](#export-csv)
+ - [Usage Examples](#usage-examples)
+    - [Laravel](#laravel) 
+        - [From Eloquent Query Builder (RECOMMENDED)](#from-eloquent-query-builder-recommended) 
+        - [From Collection](#from-collection) 
+        - [From Array](#from-array) 
+        - [Eloquent Relation](#eloquent-relation) 
+    - [RAW PHP](#raw-php) 
+        - [From Array](#from-plain-array) 
+        - [From PDOStatement (RECOMMENDED)](#from-pdostatement-recommended)
+
+### Build CSV
+CSV build takes three parameters. First one is the model which could be `Array`, `PDOStatement`, `Eloquent Query Builder` and 
+`Collection`, seconds one takes the field names you want to export, third one is CSV filename.
+
+```$xslt
+$exporter->build($queryBuilder, $columns, 'users.csv');
 ```
-$usersCollection = User::all(); // Collection
 
-Exporter::init($usersCollection, $columns, 'users.csv');
-Exporter::export();
+### Export CSV
+```$xslt
+$exporter->export();
 ```
 
-###### From Array
+## Usage Examples
+### Laravel 
+You can export data from `Eloquent Query Builder`, `Collection` and `Array` whereas `Eloquent Query Builder` is highly recommended.
+#### From Eloquent Query Builder (RECOMMENDED)
+```$xslt
+$columns = [ 'id', 'name', 'email' ];
+
+$queryBuilder = User::latest()->whereNotNull('email_verified_at'); // Query Builder
+
+$exporter = new Exporter();
+$exporter->build($queryBuilder, $columns, 'users.csv')
+         ->export();
 ```
-$usersArray = User::latest()->get()->toArray(); // Array
 
-Exporter::init($usersArray, $columns, 'users.csv');
-Exporter::export();
+#### From Collection
+```$xslt
+$columns = [ 'id', 'name', 'email' ];
+
+$collection = User::latest()->get(); // Collection
+
+$exporter = new Exporter();
+$exporter->build($collection, $columns, 'users.csv')
+         ->export();
 ```
 
-Or you can pass `Collection` or `Array`. But it is **highly recommended** to pass the **`Query Builder`** as it will use generator to save memory usage.
+#### From Array
+```$xslt
+$columns = [ 'id', 'name', 'email' ];
 
-**For eloquent relation**
+$usersArray = User::latest()->get()->toArray(); // Array of Users
+
+$exporter = new Exporter();
+$exporter->build($usersArray, $columns, 'users.csv')
+         ->export();
+```
+
+#### Eloquent Relation
 ```$xslt
 $columns = [
     'id',
@@ -63,20 +98,29 @@ $columns = [
 
 $queryBuilder = Post::with('user'); // Query builder
 
-Exporter::init($queryBuilder, $columns, 'users.csv');
-Exporter::export();
+$exporter = new Exporter();
+$exporter->build($queryBuilder, $columns, 'users.csv')
+         ->export();
 ```
 
-Where `user` is the relation name, which is same as is in the `$columns` variable.
+### Raw PHP
+The library supports Laravel as well as raw PHP. You can easily export data from `PDOStatement` and `Array`.
 
-## Usage with raw PHP (PDOStatement)
-
-Usage with PDO is straight forward. You **MUST** have to add the following code
+#### From Plain Array
 ```$xslt
-$stmt->setFetchMode(PDO::FETCH_ASSOC); // N.B. must be included
+$array = [
+    ['id' => 1, 'name' => 'John Doe', 'email' => 'john@example.com'],
+    ['id' => 2, 'name' => 'Jane Doe', 'email' => 'jane@example.com']
+];
+
+$columns = ['id', 'name', 'email'];
+
+$exporter = new Exporter();
+$exporter->build($array, $columns, 'users.csv')
+         ->export();
 ```
 
-And then pass the `$stmt` to `Exporter`
+#### From PDOStatement (RECOMMENDED)
 ```$xslt
     $servername = "localhost";
     $username = "root";
@@ -98,19 +142,14 @@ And then pass the `$stmt` to `Exporter`
         // set the resulting array to associative
         $stmt->setFetchMode(PDO::FETCH_ASSOC);
 
-        Exporter::init($stmt, $userData, 'users.csv');
-        Exporter::export();
+        $exporter = new Exporter();
+        $exporter->build($stmt, $columns, 'users.csv)
+                 ->export();
     }
     catch(PDOException $e) {
         echo "Error: " . $e->getMessage();
     }
     $conn = null;
-```
-
-## XLSX export
-Just use the file extension as `.xlsx`
-```
-Exporter::init($queryBuilder, $columns, 'users.xlsx');
 ```
 
 ## You are always welcome to contribute
