@@ -39,7 +39,6 @@ class Exporter
     {
         if (is_array($model)) {
             $this->exporter = new ExportFromArray($model, $columns, $filename);
-            $this->exporter->set();
 
             return $this;
         }
