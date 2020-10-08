@@ -21,7 +21,7 @@ class ExportFromArray extends Export implements ExporterContract
     /**
      * @return Generator
      */
-    public function set(): Generator
+    public function makeGenerator(): Generator
     {
         $this->openOutputStream();
 
@@ -35,9 +35,9 @@ class ExportFromArray extends Export implements ExporterContract
     /**
      * Get data out of generator
      */
-    public function get(): void
+    public function export(): void
     {
-        $generator = $this->set();
+        $generator = $this->makeGenerator();
 
         while ($generator->valid()) {
             $generator->next();

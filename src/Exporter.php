@@ -7,7 +7,6 @@ namespace Sujan\Exporter;
 use Exception;
 use Illuminate\Database\Eloquent\Builder;
 use PDOStatement;
-use Sujan\Exporter\Contracts\ExporterContract;
 
 class Exporter
 {
@@ -62,8 +61,6 @@ class Exporter
                 throw new Exception('Type unknown');
         }
 
-        $this->exporter->set();
-
         return $this;
     }
 
@@ -72,6 +69,6 @@ class Exporter
      */
     public function export(): void
     {
-        $this->exporter->get();
+        $this->exporter->export();
     }
 }

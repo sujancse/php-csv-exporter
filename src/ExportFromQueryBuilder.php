@@ -22,7 +22,7 @@ class ExportFromQueryBuilder extends Export implements ExporterContract
     /**
      * @return Generator
      */
-    public function set(): Generator
+    public function makeGenerator(): Generator
     {
         $this->openOutputStream();
 
@@ -36,9 +36,9 @@ class ExportFromQueryBuilder extends Export implements ExporterContract
     /*
      * Get data from query builder
      */
-    public function get(): void
+    public function export(): void
     {
-        $generator = $this->set();
+        $generator = $this->makeGenerator();
 
         while ($generator->valid()) {
             $generator->next();

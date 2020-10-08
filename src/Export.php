@@ -4,7 +4,6 @@
 namespace Sujan\Exporter;
 
 
-
 class Export
 {
     /**
@@ -17,7 +16,7 @@ class Export
      */
     protected $columns;
 
-    /*
+    /**
      * @var array
      */
     private $heading = [];
@@ -27,7 +26,7 @@ class Export
      */
     protected $filename;
 
-    /*
+    /**
      * Array of content types
      */
     private $contentTypes = [
@@ -35,7 +34,7 @@ class Export
         'xlsx' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
     ];
 
-    /*
+    /**
      * Content type
      */
     private $contentType;
